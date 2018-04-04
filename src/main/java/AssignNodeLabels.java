@@ -13,10 +13,11 @@ import io.kubernetes.client.proto.V1;
 import io.kubernetes.client.util.Config;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class Main {
+public class AssignNodeLabels {
 
     public static void main(String[] args) throws IOException, ApiException {
 
@@ -27,35 +28,55 @@ public class Main {
 
         V1NodeList v1NodeList = api.listNode(null, null, null, null, null, null, null, null, null);
 
+        //*
         List<V1Node> nodes = v1NodeList.getItems();
 
         for (int i = 0; i < nodes.size(); i++) {
             String label = "";
-            switch (i) {
-                case 0:
-                case 1:
-                case 2:
+            String[] nodeName = nodes.get(i).getMetadata().getName().split("-");
+            switch (nodeName[nodeName.length-1]) {
+                case "0":
+                case "1":
+                case "2":
+                case "11":
+                case "13":
+                case "15":
                     label = "broker";
                     break;
-                case 3:
-                case 4:
-                case 5:
+                case "3":
+                case "4":
+                case "5":
                     label = "zookeeper";
                     break;
+                case "6":
+                case "7":
+                case "8":
+                case "9":
+                case "10":
+                case "12":
+                case "14":
+                case "16":
+                case "17":
+                    label = "producer";
+                    break;
+                default:
+                    label = "";
+                    break;
             }
-            V1Node node = nodes.get(i);
 
+            if (!label.isEmpty()) {
 
-            Map<String, String> labels = node.getMetadata().getLabels();
-            labels.put("cluster", label);
-            node.getMetadata().setLabels(labels);
+                V1Node node = nodes.get(i);
 
-            String name = node.getMetadata().getName();
-            api.replaceNode(name, node, "false");
+                Map<String, String> labels = node.getMetadata().getLabels();
+                labels.put("cluster", label);
+                node.getMetadata().setLabels(labels);
 
-
+                String name = node.getMetadata().getName();
+                api.replaceNode(name, node, "false");
+            }
         }
-
+        //*/
 
         v1NodeList.getItems()
                 .forEach(v1Node -> {
